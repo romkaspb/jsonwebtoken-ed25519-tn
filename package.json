@@ -1,5 +1,5 @@
 {
-  "name": "jsonwebtoken",
+  "name": "jsonwebtoken-ed25519",
   "version": "8.2.1",
   "description": "JSON Web Token implementation (symmetric and asymmetric)",
   "main": "index.js",
@@ -8,7 +8,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/auth0/node-jsonwebtoken"
+    "url": "https://github.com/ozomer/node-jsonwebtoken"
   },
   "keywords": [
     "jwt"
@@ -16,9 +16,10 @@
   "author": "auth0",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/auth0/node-jsonwebtoken/issues"
+    "url": "https://github.com/ozomer/node-jsonwebtoken/issues"
   },
   "dependencies": {
+    "ed25519": "0.0.4",
     "jws": "3.1.5",
     "lodash.includes": "4.3.0",
     "lodash.isboolean": "3.0.3",
