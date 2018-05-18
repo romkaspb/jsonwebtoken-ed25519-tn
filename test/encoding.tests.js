@@ -29,7 +29,7 @@ describe('encoding', function() {
       username: username
     }, 'test');
 
-    var payload = jwt.verify(token, 'test');
+    var payload = jwt.verify(token, 'test', { algorithm: 'HS256' });
 
     expect(payload.username).to.equal(username);
   });

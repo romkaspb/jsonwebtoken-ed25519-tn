@@ -8,7 +8,7 @@ describe('iat', function () {
     var iat = dateNow - 30;
     var expiresIn = 50;
     var token = jwt.sign({foo: 123, iat: iat}, '123', {expiresIn: expiresIn});
-    var result = jwt.verify(token, '123');
+    var result = jwt.verify(token, '123', { algorithm: 'HS256' });
     expect(result.exp).to.be.closeTo(iat + expiresIn, 0.2);
   });
 
@@ -17,7 +17,7 @@ describe('iat', function () {
     var iat = dateNow - 30;
     var notBefore = -50;
     var token = jwt.sign({foo: 123, iat: iat}, '123', {notBefore: notBefore});
-    var result = jwt.verify(token, '123');
+    var result = jwt.verify(token, '123', { algorithm: 'HS256' });
     expect(result.nbf).to.equal(iat + notBefore);
   });
 

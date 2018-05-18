@@ -9,7 +9,7 @@ describe('issue 70 - public key start with BEING PUBLIC KEY', function () {
 
     var token = jwt.sign({ foo: 'bar' }, cert_priv, { algorithm: 'RS256'});
 
-    jwt.verify(token, cert_pub, done);
+    jwt.verify(token, cert_pub, { algorithm: 'RS256' }, done);
   });
 
 });

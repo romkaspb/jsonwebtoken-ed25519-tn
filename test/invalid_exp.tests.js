@@ -17,7 +17,7 @@ describe('invalid expiration', function() {
   it('should fail with 0', function (done) {
     var broken_token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjAsImZvbyI6ImFkYXMifQ.UKxix5T79WwfqAA0fLZr6UrhU-jMES2unwCOFa4grEA';
 
-    jwt.verify(broken_token, '123', function (err) {
+    jwt.verify(broken_token, '123', { algorithm: 'HS256' }, function (err) {
       expect(err.name).to.equal('TokenExpiredError');
       done();
     });

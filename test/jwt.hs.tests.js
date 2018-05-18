@@ -22,11 +22,11 @@ describe('HS256', function() {
         done();
       };
       callback.issuer = "shouldn't affect";
-      jwt.verify(token, secret, callback );
+      jwt.verify(token, secret, { algorithm: 'HS256' }, callback );
     });
 
     it('should validate with secret', function(done) {
-      jwt.verify(token, secret, function(err, decoded) {
+      jwt.verify(token, secret, { algorithm: 'HS256' }, function(err, decoded) {
         assert.ok(decoded.foo);
         assert.equal('bar', decoded.foo);
         done();
@@ -90,7 +90,7 @@ describe('HS256', function() {
 
     it('should default to HS256 algorithm when no options are passed', function() {
       var token = jwt.sign({ foo: 'bar' }, secret);
-      var verifiedToken = jwt.verify(token, secret);
+      var verifiedToken = jwt.verify(token, secret, { algorithm: 'HS256' });
       assert.ok(verifiedToken.foo);
       assert.equal('bar', verifiedToken.foo);
     });

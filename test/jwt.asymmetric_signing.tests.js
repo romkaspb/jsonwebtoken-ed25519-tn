@@ -45,7 +45,7 @@ describe('Asymmetric Algorithms', function(){
 
         context('asynchronous', function () {
           it('should validate with public key', function (done) {
-            jwt.verify(token, pub, function (err, decoded) {
+            jwt.verify(token, pub, { algorithm: algorithm }, function (err, decoded) {
               assert.ok(decoded.foo);
               assert.equal('bar', decoded.foo);
               done();
@@ -53,7 +53,7 @@ describe('Asymmetric Algorithms', function(){
           });
 
           it('should throw with invalid public key', function (done) {
-            jwt.verify(token, invalid_pub, function (err, decoded) {
+            jwt.verify(token, invalid_pub, { algorithm: algorithm }, function (err, decoded) {
               assert.isUndefined(decoded);
               assert.isNotNull(err);
               done();
@@ -63,13 +63,13 @@ describe('Asymmetric Algorithms', function(){
 
         context('synchronous', function () {
           it('should validate with public key', function () {
-            var decoded = jwt.verify(token, pub);
+            var decoded = jwt.verify(token, pub, { algorithm: algorithm });
             assert.ok(decoded.foo);
             assert.equal('bar', decoded.foo);
           });
 
           it('should throw with invalid public key', function () {
-            var jwtVerify = jwt.verify.bind(null, token, invalid_pub)
+            var jwtVerify = jwt.verify.bind(null, token, invalid_pub, { algorithm: algorithm })
             assert.throw(jwtVerify, 'invalid signature');
           });
         });
@@ -80,7 +80,7 @@ describe('Asymmetric Algorithms', function(){
         var token = jwt.sign({ foo: 'bar' }, priv, { algorithm: algorithm, expiresIn: '10m' });
 
         it('should be valid expiration', function (done) {
-          jwt.verify(token, pub, function (err, decoded) {
+          jwt.verify(token, pub, { algorithm: algorithm }, function (err, decoded) {
             assert.isNotNull(decoded);
             assert.isNull(err);
             done();
@@ -91,7 +91,7 @@ describe('Asymmetric Algorithms', function(){
           // expired token
           token = jwt.sign({ foo: 'bar' }, priv, { algorithm: algorithm, expiresIn: -1 * ms('10m') });
 
-          jwt.verify(token, pub, function (err, decoded) {
+          jwt.verify(token, pub, { algorithm: algorithm }, function (err, decoded) {
             assert.isUndefined(decoded);
             assert.isNotNull(err);
             assert.equal(err.name, 'TokenExpiredError');
@@ -105,7 +105,7 @@ describe('Asymmetric Algorithms', function(){
           // expired token
           token = jwt.sign({ foo: 'bar' }, priv, { algorithm: algorithm, expiresIn: -1 * ms('10m') });
 
-          jwt.verify(token, pub, { ignoreExpiration: true }, function (err, decoded) {
+          jwt.verify(token, pub, { algorithm: algorithm, ignoreExpiration: true }, function (err, decoded) {
             assert.ok(decoded.foo);
             assert.equal('bar', decoded.foo);
             done();
@@ -117,7 +117,7 @@ describe('Asymmetric Algorithms', function(){
         var token = jwt.sign({ foo: 'bar' }, priv, { algorithm: algorithm, notBefore: -10 * 3600 });
 
         it('should be valid expiration', function (done) {
-          jwt.verify(token, pub, function (err, decoded) {
+          jwt.verify(token, pub, { algorithm: algorithm }, function (err, decoded) {
             assert.isNotNull(decoded);
             assert.isNull(err);
             done();
@@ -128,7 +128,7 @@ describe('Asymmetric Algorithms', function(){
           // not active token
           token = jwt.sign({ foo: 'bar' }, priv, { algorithm: algorithm, notBefore: '10m' });
 
-          jwt.verify(token, pub, function (err, decoded) {
+          jwt.verify(token, pub, { algorithm: algorithm }, function (err, decoded) {
             assert.isUndefined(decoded);
             assert.isNotNull(err);
             assert.equal(err.name, 'NotBeforeError');
@@ -144,7 +144,7 @@ describe('Asymmetric Algorithms', function(){
 
           token = jwt.sign({ foo: 'bar' }, priv, { algorithm: algorithm, notBefore: 0 });
 
-          jwt.verify(token, pub, function (err, decoded) {
+          jwt.verify(token, pub, { algorithm: algorithm }, function (err, decoded) {
             assert.isNull(err);
             assert.isNotNull(decoded);
             Date.unfix();
@@ -156,7 +156,7 @@ describe('Asymmetric Algorithms', function(){
           // not active token
           token = jwt.sign({ foo: 'bar' }, priv, { algorithm: algorithm, notBefore: '10m' });
 
-          jwt.verify(token, pub, { ignoreNotBefore: true }, function (err, decoded) {
+          jwt.verify(token, pub, { algorithm: algorithm, ignoreNotBefore: true }, function (err, decoded) {
             assert.ok(decoded.foo);
             assert.equal('bar', decoded.foo);
             done();
@@ -168,7 +168,7 @@ describe('Asymmetric Algorithms', function(){
         var token = jwt.sign({ foo: 'bar' }, priv, { algorithm: algorithm, audience: 'urn:foo' });
 
         it('should check audience', function (done) {
-          jwt.verify(token, pub, { audience: 'urn:foo' }, function (err, decoded) {
+          jwt.verify(token, pub, { algorithm: algorithm, audience: 'urn:foo' }, function (err, decoded) {
             assert.isNotNull(decoded);
             assert.isNull(err);
             done();
@@ -176,7 +176,7 @@ describe('Asymmetric Algorithms', function(){
         });
 
         it('should check audience using RegExp', function (done) {
-          jwt.verify(token, pub, { audience: /urn:f[o]{2}/  }, function (err, decoded) {
+          jwt.verify(token, pub, { algorithm: algorithm, audience: /urn:f[o]{2}/  }, function (err, decoded) {
             assert.isNotNull(decoded);
             assert.isNull(err);
             done();
@@ -184,7 +184,7 @@ describe('Asymmetric Algorithms', function(){
         });
 
         it('should check audience in array', function (done) {
-          jwt.verify(token, pub, { audience: ['urn:foo', 'urn:other'] }, function (err, decoded) {
+          jwt.verify(token, pub, { algorithm: algorithm, audience: ['urn:foo', 'urn:other'] }, function (err, decoded) {
             assert.isNotNull(decoded);
             assert.isNull(err);
             done();
@@ -192,7 +192,7 @@ describe('Asymmetric Algorithms', function(){
         });
 
         it('should check audience in array using RegExp', function (done) {
-          jwt.verify(token, pub, { audience: ['urn:bar', /urn:f[o]{2}/, 'urn:other'] }, function (err, decoded) {
+          jwt.verify(token, pub, { algorithm: algorithm, audience: ['urn:bar', /urn:f[o]{2}/, 'urn:other'] }, function (err, decoded) {
             assert.isNotNull(decoded);
             assert.isNull(err);
             done();
@@ -200,7 +200,7 @@ describe('Asymmetric Algorithms', function(){
         });
 
         it('should throw when invalid audience', function (done) {
-          jwt.verify(token, pub, { audience: 'urn:wrong' }, function (err, decoded) {
+          jwt.verify(token, pub, { algorithm: algorithm, audience: 'urn:wrong' }, function (err, decoded) {
             assert.isUndefined(decoded);
             assert.isNotNull(err);
             assert.equal(err.name, 'JsonWebTokenError');
@@ -210,7 +210,7 @@ describe('Asymmetric Algorithms', function(){
         });
 
         it('should throw when invalid audience using RegExp', function (done) {
-          jwt.verify(token, pub, { audience: /urn:bar/ }, function (err, decoded) {
+          jwt.verify(token, pub, { algorithm: algorithm, audience: /urn:bar/ }, function (err, decoded) {
             assert.isUndefined(decoded);
             assert.isNotNull(err);
             assert.equal(err.name, 'JsonWebTokenError');
@@ -220,7 +220,7 @@ describe('Asymmetric Algorithms', function(){
         });
 
         it('should throw when invalid audience in array', function (done) {
-          jwt.verify(token, pub, { audience: ['urn:wrong', 'urn:morewrong', /urn:bar/] }, function (err, decoded) {
+          jwt.verify(token, pub, { algorithm: algorithm, audience: ['urn:wrong', 'urn:morewrong', /urn:bar/] }, function (err, decoded) {
             assert.isUndefined(decoded);
             assert.isNotNull(err);
             assert.equal(err.name, 'JsonWebTokenError');
@@ -235,7 +235,7 @@ describe('Asymmetric Algorithms', function(){
         var token = jwt.sign({ foo: 'bar' }, priv, { algorithm: algorithm, audience: ['urn:foo', 'urn:bar'] });
 
         it('should check audience', function (done) {
-          jwt.verify(token, pub, { audience: 'urn:foo' }, function (err, decoded) {
+          jwt.verify(token, pub, { algorithm: algorithm, audience: 'urn:foo' }, function (err, decoded) {
             assert.isNotNull(decoded);
             assert.isNull(err);
             done();
@@ -243,7 +243,7 @@ describe('Asymmetric Algorithms', function(){
         });
 
         it('should check other audience', function (done) {
-          jwt.verify(token, pub, { audience: 'urn:bar' }, function (err, decoded) {
+          jwt.verify(token, pub, { algorithm: algorithm, audience: 'urn:bar' }, function (err, decoded) {
             assert.isNotNull(decoded);
             assert.isNull(err);
             done();
@@ -251,7 +251,7 @@ describe('Asymmetric Algorithms', function(){
         });
 
         it('should check audience using RegExp', function (done) {
-          jwt.verify(token, pub, { audience: /urn:f[o]{2}/ }, function (err, decoded) {
+          jwt.verify(token, pub, { algorithm: algorithm, audience: /urn:f[o]{2}/ }, function (err, decoded) {
             assert.isNotNull(decoded);
             assert.isNull(err);
             done();
@@ -259,7 +259,7 @@ describe('Asymmetric Algorithms', function(){
         });
 
         it('should check audience in array', function (done) {
-          jwt.verify(token, pub, { audience: ['urn:foo', 'urn:other'] }, function (err, decoded) {
+          jwt.verify(token, pub, { algorithm: algorithm, audience: ['urn:foo', 'urn:other'] }, function (err, decoded) {
             assert.isNotNull(decoded);
             assert.isNull(err);
             done();
@@ -267,7 +267,7 @@ describe('Asymmetric Algorithms', function(){
         });
 
         it('should check audience in array using RegExp', function (done) {
-          jwt.verify(token, pub, { audience: ['urn:one', 'urn:other', /urn:f[o]{2}/] }, function (err, decoded) {
+          jwt.verify(token, pub, { algorithm: algorithm, audience: ['urn:one', 'urn:other', /urn:f[o]{2}/] }, function (err, decoded) {
             assert.isNotNull(decoded);
             assert.isNull(err);
             done();
@@ -275,7 +275,7 @@ describe('Asymmetric Algorithms', function(){
         });
 
         it('should throw when invalid audience', function (done) {
-          jwt.verify(token, pub, { audience: 'urn:wrong' }, function (err, decoded) {
+          jwt.verify(token, pub, { algorithm: algorithm, audience: 'urn:wrong' }, function (err, decoded) {
             assert.isUndefined(decoded);
             assert.isNotNull(err);
             assert.equal(err.name, 'JsonWebTokenError');
@@ -285,7 +285,7 @@ describe('Asymmetric Algorithms', function(){
         });
 
         it('should throw when invalid audience using RegExp', function (done) {
-          jwt.verify(token, pub, { audience: /urn:wrong/ }, function (err, decoded) {
+          jwt.verify(token, pub, { algorithm: algorithm, audience: /urn:wrong/ }, function (err, decoded) {
             assert.isUndefined(decoded);
             assert.isNotNull(err);
             assert.equal(err.name, 'JsonWebTokenError');
@@ -295,7 +295,7 @@ describe('Asymmetric Algorithms', function(){
         });
 
         it('should throw when invalid audience in array', function (done) {
-          jwt.verify(token, pub, { audience: ['urn:wrong', 'urn:morewrong'] }, function (err, decoded) {
+          jwt.verify(token, pub, { algorithm: algorithm, audience: ['urn:wrong', 'urn:morewrong'] }, function (err, decoded) {
             assert.isUndefined(decoded);
             assert.isNotNull(err);
             assert.equal(err.name, 'JsonWebTokenError');
@@ -305,7 +305,7 @@ describe('Asymmetric Algorithms', function(){
         });
 
         it('should throw when invalid audience in array', function (done) {
-          jwt.verify(token, pub, { audience: ['urn:wrong', 'urn:morewrong', /urn:alsowrong/] }, function (err, decoded) {
+          jwt.verify(token, pub, { algorithm: algorithm, audience: ['urn:wrong', 'urn:morewrong', /urn:alsowrong/] }, function (err, decoded) {
             assert.isUndefined(decoded);
             assert.isNotNull(err);
             assert.equal(err.name, 'JsonWebTokenError');
@@ -320,7 +320,7 @@ describe('Asymmetric Algorithms', function(){
         var token = jwt.sign({ foo: 'bar' }, priv, { algorithm: algorithm });
 
         it('should check audience', function (done) {
-          jwt.verify(token, pub, { audience: 'urn:wrong' }, function (err, decoded) {
+          jwt.verify(token, pub, { algorithm: algorithm, audience: 'urn:wrong' }, function (err, decoded) {
             assert.isUndefined(decoded);
             assert.isNotNull(err);
             assert.equal(err.name, 'JsonWebTokenError');
@@ -330,7 +330,7 @@ describe('Asymmetric Algorithms', function(){
         });
 
         it('should check audience using RegExp', function (done) {
-          jwt.verify(token, pub, { audience: /urn:wrong/ }, function (err, decoded) {
+          jwt.verify(token, pub, { algorithm: algorithm, audience: /urn:wrong/ }, function (err, decoded) {
             assert.isUndefined(decoded);
             assert.isNotNull(err);
             assert.equal(err.name, 'JsonWebTokenError');
@@ -340,7 +340,7 @@ describe('Asymmetric Algorithms', function(){
         });
 
         it('should check audience in array', function (done) {
-          jwt.verify(token, pub, { audience: ['urn:wrong', 'urn:morewrong', /urn:alsowrong/] }, function (err, decoded) {
+          jwt.verify(token, pub, { algorithm: algorithm, audience: ['urn:wrong', 'urn:morewrong', /urn:alsowrong/] }, function (err, decoded) {
             assert.isUndefined(decoded);
             assert.isNotNull(err);
             assert.equal(err.name, 'JsonWebTokenError');
@@ -355,7 +355,7 @@ describe('Asymmetric Algorithms', function(){
         var token = jwt.sign({ foo: 'bar' }, priv, { algorithm: algorithm, issuer: 'urn:foo' });
 
         it('should check issuer', function (done) {
-          jwt.verify(token, pub, { issuer: 'urn:foo' }, function (err, decoded) {
+          jwt.verify(token, pub, { algorithm: algorithm, issuer: 'urn:foo' }, function (err, decoded) {
             assert.isNotNull(decoded);
             assert.isNull(err);
             done();
@@ -363,7 +363,7 @@ describe('Asymmetric Algorithms', function(){
         });
 
         it('should check the issuer when providing a list of valid issuers', function (done) {
-          jwt.verify(token, pub, { issuer: ['urn:foo', 'urn:bar'] }, function (err, decoded) {
+          jwt.verify(token, pub, { algorithm: algorithm, issuer: ['urn:foo', 'urn:bar'] }, function (err, decoded) {
             assert.isNotNull(decoded);
             assert.isNull(err);
             done();
@@ -371,7 +371,7 @@ describe('Asymmetric Algorithms', function(){
         });
 
         it('should throw when invalid issuer', function (done) {
-          jwt.verify(token, pub, { issuer: 'urn:wrong' }, function (err, decoded) {
+          jwt.verify(token, pub, { algorithm: algorithm, issuer: 'urn:wrong' }, function (err, decoded) {
             assert.isUndefined(decoded);
             assert.isNotNull(err);
             assert.equal(err.name, 'JsonWebTokenError');
@@ -385,7 +385,7 @@ describe('Asymmetric Algorithms', function(){
         var token = jwt.sign({ foo: 'bar' }, priv, { algorithm: algorithm });
 
         it('should check issuer', function (done) {
-          jwt.verify(token, pub, { issuer: 'urn:foo' }, function (err, decoded) {
+          jwt.verify(token, pub, { algorithm: algorithm, issuer: 'urn:foo' }, function (err, decoded) {
             assert.isUndefined(decoded);
             assert.isNotNull(err);
             assert.equal(err.name, 'JsonWebTokenError');
@@ -399,7 +399,7 @@ describe('Asymmetric Algorithms', function(){
         var token = jwt.sign({ foo: 'bar' }, priv, { algorithm: algorithm, subject: 'subject' });
 
         it('should check subject', function (done) {
-          jwt.verify(token, pub, { subject: 'subject' }, function (err, decoded) {
+          jwt.verify(token, pub, { algorithm: algorithm, subject: 'subject' }, function (err, decoded) {
             assert.isNotNull(decoded);
             assert.isNull(err);
             done();
@@ -407,7 +407,7 @@ describe('Asymmetric Algorithms', function(){
         });
 
         it('should throw when invalid subject', function (done) {
-          jwt.verify(token, pub, { subject: 'wrongSubject' }, function (err, decoded) {
+          jwt.verify(token, pub, { algorithm: algorithm, subject: 'wrongSubject' }, function (err, decoded) {
             assert.isUndefined(decoded);
             assert.isNotNull(err);
             assert.equal(err.name, 'JsonWebTokenError');
@@ -421,7 +421,7 @@ describe('Asymmetric Algorithms', function(){
         var token = jwt.sign({ foo: 'bar' }, priv, { algorithm: algorithm });
 
         it('should check subject', function (done) {
-          jwt.verify(token, pub, { subject: 'subject' }, function (err, decoded) {
+          jwt.verify(token, pub, { algorithm: algorithm, subject: 'subject' }, function (err, decoded) {
             assert.isUndefined(decoded);
             assert.isNotNull(err);
             assert.equal(err.name, 'JsonWebTokenError');
@@ -435,7 +435,7 @@ describe('Asymmetric Algorithms', function(){
         var token = jwt.sign({ foo: 'bar' }, priv, { algorithm: algorithm, jwtid: 'jwtid' });
 
         it('should check jwt id', function (done) {
-          jwt.verify(token, pub, { jwtid: 'jwtid' }, function (err, decoded) {
+          jwt.verify(token, pub, { algorithm: algorithm, jwtid: 'jwtid' }, function (err, decoded) {
             assert.isNotNull(decoded);
             assert.isNull(err);
             done();
@@ -443,7 +443,7 @@ describe('Asymmetric Algorithms', function(){
         });
 
         it('should throw when invalid jwt id', function (done) {
-          jwt.verify(token, pub, { jwtid: 'wrongJwtid' }, function (err, decoded) {
+          jwt.verify(token, pub, { algorithm: algorithm, jwtid: 'wrongJwtid' }, function (err, decoded) {
             assert.isUndefined(decoded);
             assert.isNotNull(err);
             assert.equal(err.name, 'JsonWebTokenError');
@@ -457,7 +457,7 @@ describe('Asymmetric Algorithms', function(){
         var token = jwt.sign({ foo: 'bar' }, priv, { algorithm: algorithm });
 
         it('should check jwt id', function (done) {
-          jwt.verify(token, pub, { jwtid: 'jwtid' }, function (err, decoded) {
+          jwt.verify(token, pub, { algorithm: algorithm, jwtid: 'jwtid' }, function (err, decoded) {
             assert.isUndefined(decoded);
             assert.isNotNull(err);
             assert.equal(err.name, 'JsonWebTokenError');
