@@ -3,8 +3,11 @@ var NotBeforeError    = require('./lib/NotBeforeError');
 var TokenExpiredError = require('./lib/TokenExpiredError');
 var decode            = require('./decode');
 var timespan          = require('./lib/timespan');
+var ed25519Utils      = require('./lib/ed25519Utils');
 var jws               = require('jws');
 var xtend             = require('xtend');
+var ed25519           = require('ed25519');
+var util              = require('util');
 
 module.exports = function (jwtString, secretOrPublicKey, options, callback) {
   if ((typeof options === 'function') && !callback) {
@@ -99,10 +102,25 @@ module.exports = function (jwtString, secretOrPublicKey, options, callback) {
     return done(new JsonWebTokenError('invalid algorithm'));
   }
 
+  if (header.alg === 'Ed25519') {
+    try {
+      secretOrPublicKey = ed25519Utils.toPublicKey(secretOrPublicKey);
+    } catch (err) {
+      return done(new JsonWebTokenError('Invalid Ed25519 public key'));
+    }  
+  }
+
   var valid;
 
   try {
-    valid = jws.verify(jwtString, header.alg, secretOrPublicKey);
+    if (header.alg === 'Ed25519') {
+      // Token must have good format because jws.decode validated it.
+      var securedInput = ed25519Utils.bufferFromString(util.format('%s.%s', parts[0], parts[1]));
+      var signature = ed25519Utils.bufferFromString(parts[2], 'base64');
+      valid = (signature.length === ed25519Utils.SIGNATURE_SIZE) && ed25519.Verify(securedInput, signature, secretOrPublicKey);
+    } else {
+      valid = jws.verify(jwtString, header.alg, secretOrPublicKey);
+    }
   } catch (e) {
     return done(e);
   }
