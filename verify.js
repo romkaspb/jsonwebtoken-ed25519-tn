@@ -29,6 +29,18 @@ module.exports = function (jwtString, secretOrPublicKey, options, callback) {
     };
   }
 
+  // secretOrPrivateKey may be an object of the format: { "algorithm": ..., "key": ... }
+  if (secretOrPrivateKey && secretOrPrivateKey.algorithm) {
+    if (options.algorithm) {
+      if (options.algorithm !== secretOrPrivateKey.algorithm) {
+        return done(new JsonWebTokenError('The algorithm specified in the key is different from the algorithm specified in the options'));
+      }
+    } else {
+      options.algorithm = secretOrPrivateKey.algorithm;
+    }
+    secretOrPrivateKey = secretOrPrivateKey.key;
+  }
+
   if (options.clockTimestamp && typeof options.clockTimestamp !== 'number') {
     return done(new JsonWebTokenError('clockTimestamp must be a number'));
   }
@@ -59,18 +71,15 @@ module.exports = function (jwtString, secretOrPublicKey, options, callback) {
     return done(new JsonWebTokenError('secret or public key must be provided'));
   }
 
-  if (!hasSignature && !options.algorithms) {
-    options.algorithms = ['none'];
-  }
-
-  if (!options.algorithms) {
-    options.algorithms = ~secretOrPublicKey.toString().indexOf('BEGIN CERTIFICATE') ||
-                         ~secretOrPublicKey.toString().indexOf('BEGIN PUBLIC KEY') ?
+  if (!options.algorithm) {
+    var assumedAlgorithms = ~(secretOrPublicKey || '').toString().indexOf('BEGIN CERTIFICATE') ||
+                         ~(secretOrPublicKey || '').toString().indexOf('BEGIN PUBLIC KEY') ?
                           [ 'RS256','RS384','RS512','ES256','ES384','ES512' ] :
-                         ~secretOrPublicKey.toString().indexOf('BEGIN RSA PUBLIC KEY') ?
+                         ~(secretOrPublicKey || '').toString().indexOf('BEGIN RSA PUBLIC KEY') ?
                           [ 'RS256','RS384','RS512' ] :
                           [ 'HS256','HS384','HS512' ];
-
+    // We intentionally don't tell the user that his algorithm might be "none".
+    return done(new JsonWebTokenError('algorithm must be specified in the options or in the key. Looking at the key, it is probably one of: ' + assumedAlgorithms.join(', ')))
   }
 
   var decodedToken;
@@ -86,7 +95,7 @@ module.exports = function (jwtString, secretOrPublicKey, options, callback) {
 
   var header = decodedToken.header;
 
-  if (!~options.algorithms.indexOf(header.alg)) {
+  if (options.algorithm !== header.alg) {
     return done(new JsonWebTokenError('invalid algorithm'));
   }
 

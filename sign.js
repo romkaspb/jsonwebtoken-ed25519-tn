@@ -79,7 +79,26 @@ module.exports = function (payload, secretOrPrivateKey, options, callback) {
     callback = options;
     options = {};
   } else {
-    options = options || {};
+    options = xtend(options || {}); // may mutate later
+  }
+
+  function failure(err) {
+    if (callback) {
+      return callback(err);
+    }
+    throw err;
+  }
+
+  // secretOrPrivateKey may be an object of the format: { "algorithm": ..., "key": ... }
+  if (secretOrPrivateKey && secretOrPrivateKey.algorithm) {
+    if (options.algorithm) {
+      if (options.algorithm !== secretOrPrivateKey.algorithm) {
+        return failure(new Error('The algorithm specified in the key is different from the algorithm specified in the options'));
+      }
+    } else {
+      options.algorithm = secretOrPrivateKey.algorithm;
+    }
+    secretOrPrivateKey = secretOrPrivateKey.key;
   }
 
   var isObjectPayload = typeof payload === 'object' &&
@@ -90,13 +109,6 @@ module.exports = function (payload, secretOrPrivateKey, options, callback) {
     typ: isObjectPayload ? 'JWT' : undefined,
     kid: options.keyid
   }, options.header);
-
-  function failure(err) {
-    if (callback) {
-      return callback(err);
-    }
-    throw err;
-  }
 
   if (!secretOrPrivateKey && options.algorithm !== 'none') {
     return failure(new Error('secretOrPrivateKey must have a value'));
