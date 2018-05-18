@@ -29,16 +29,16 @@ module.exports = function (jwtString, secretOrPublicKey, options, callback) {
     };
   }
 
-  // secretOrPrivateKey may be an object of the format: { "algorithm": ..., "key": ... }
-  if (secretOrPrivateKey && secretOrPrivateKey.algorithm) {
+  // secretOrPublicKey may be an object of the format: { "algorithm": ..., "key": ... }
+  if (secretOrPublicKey && secretOrPublicKey.algorithm) {
     if (options.algorithm) {
-      if (options.algorithm !== secretOrPrivateKey.algorithm) {
+      if (options.algorithm !== secretOrPublicKey.algorithm) {
         return done(new JsonWebTokenError('The algorithm specified in the key is different from the algorithm specified in the options'));
       }
     } else {
-      options.algorithm = secretOrPrivateKey.algorithm;
+      options.algorithm = secretOrPublicKey.algorithm;
     }
-    secretOrPrivateKey = secretOrPrivateKey.key;
+    secretOrPublicKey = secretOrPublicKey.key;
   }
 
   if (options.clockTimestamp && typeof options.clockTimestamp !== 'number') {
