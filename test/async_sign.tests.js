@@ -58,6 +58,14 @@ describe('signing a token asynchronously', function() {
       });
     });
 
+    it('should return error when secret is not a cert for Ed25519', function(done) {
+      //this throw an error because the secret is not a cert and Ed25519 requires a cert.
+      jwt.sign({ foo: 'bar' }, secret, { algorithm: 'Ed25519' }, function (err) {
+        expect(err).to.be.ok();
+        done();
+      });
+    });
+
     it('should return error on wrong arguments', function(done) {
       //this throw an error because the secret is not a cert and RS256 requires a cert.
       jwt.sign({ foo: 'bar' }, secret, { notBefore: {} }, function (err) {

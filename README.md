@@ -1,21 +1,53 @@
-# jsonwebtoken
+# jsonwebtoken-ed25519
 
-[![Build Status](https://secure.travis-ci.org/auth0/node-jsonwebtoken.svg?branch=master)](http://travis-ci.org/auth0/node-jsonwebtoken)[![Dependency Status](https://david-dm.org/auth0/node-jsonwebtoken.svg)](https://david-dm.org/auth0/node-jsonwebtoken)
+[![Build Status](https://secure.travis-ci.org/ozomer/node-jsonwebtoken.svg?branch=ed25519)](http://travis-ci.org/ozomer/node-jsonwebtoken)[![Dependency Status](https://david-dm.org/ozomer/node-jsonwebtoken.svg)](https://david-dm.org/ozomer/node-jsonwebtoken)
 
 
 An implementation of [JSON Web Tokens](https://tools.ietf.org/html/rfc7519).
 
 This was developed against `draft-ietf-oauth-json-web-token-08`. It makes use of [node-jws](https://github.com/brianloveswords/node-jws)
 
+## Fork Changes
+
+This package is a fork of [jsonwebtoken](https://www.npmjs.com/package/jsonwebtoken) with two major changes:
+
+#### `verify()` must always be called with a specific algorithm name.
+It will not trust the algorithm that is packed inside the token (anything in the token should not be trusted before verification, including the verification-algorithm). It will also not try to guess the algorithm based on the textual format of the secret/public-key. Those approaches may lead to [critical vulnerabilities](https://auth0.com/blog/critical-vulnerabilities-in-json-web-token-libraries).
+
+For simplicity, you may also specify the algorithm in together with the key in a single object. i.e.
+```js
+verify(token, { key: "shhh", algorithm: "HS512"})
+```
+is equivalent to
+```js
+verify(token, "shhh", { algorithm: "HS512"})
+```
+This allows you to store `{ key: "shhh", algorithm: "HS512"}` in a single constant, and use it easily.
+
+Specifying multiple algorithms (via `options.algorithms`) is also not allowed.
+
+Signing without an algorithm name is still allowed, and uses *HS256* like before.
+
+### Ed25519
+Support for signing and verifying *Ed25519* using the [ed25519](https://www.npmjs.com/package/ed25519) package.
+Keys may be specified as Buffers, base64 strings or hex strings (not pem files!).
+
+You may create key-pairs by installing the ed25519 package and calling:
+```js
+require('ed25519').MakeKeypair(crypto.randomBytes(32))
+```
+
+Ed25519 is not specified in the jwt draft. The token alg value (in the jwt header) will be "Ed25519".
+
 # Install
 
 ```bash
-$ npm install jsonwebtoken
+$ npm install jsonwebtoken-ed25519
 ```
 
 # Migration notes
 
-* [From v7 to v8](https://github.com/auth0/node-jsonwebtoken/wiki/Migration-Notes:-v7-to-v8)
+* [From v7 to v8](https://github.com/ozomer/node-jsonwebtoken/wiki/Migration-Notes:-v7-to-v8)
 
 # Usage
 
@@ -140,60 +172,60 @@ As mentioned in [this comment](https://github.com/auth0/node-jsonwebtoken/issues
 
 ```js
 // verify a token symmetric - synchronous
-var decoded = jwt.verify(token, 'shhhhh');
+var decoded = jwt.verify(token, 'shhhhh', { algorithm: "HS256" });
 console.log(decoded.foo) // bar
 
 // verify a token symmetric
-jwt.verify(token, 'shhhhh', function(err, decoded) {
+jwt.verify(token, 'shhhhh', { algorithm: "HS256" }, function(err, decoded) {
   console.log(decoded.foo) // bar
 });
 
 // invalid token - synchronous
 try {
-  var decoded = jwt.verify(token, 'wrong-secret');
+  var decoded = jwt.verify(token, 'wrong-secret', { algorithm: "HS256" });
 } catch(err) {
   // err
 }
 
 // invalid token
-jwt.verify(token, 'wrong-secret', function(err, decoded) {
+jwt.verify(token, 'wrong-secret', { algorithm: "HS256" }, function(err, decoded) {
   // err
   // decoded undefined
 });
 
 // verify a token asymmetric
 var cert = fs.readFileSync('public.pem');  // get public key
-jwt.verify(token, cert, function(err, decoded) {
+jwt.verify(token, cert, { algorithm: "RS256" }, function(err, decoded) {
   console.log(decoded.foo) // bar
 });
 
 // verify audience
 var cert = fs.readFileSync('public.pem');  // get public key
-jwt.verify(token, cert, { audience: 'urn:foo' }, function(err, decoded) {
+jwt.verify(token, cert, { audience: 'urn:foo', algorithm: "RS256" }, function(err, decoded) {
   // if audience mismatch, err == invalid audience
 });
 
 // verify issuer
 var cert = fs.readFileSync('public.pem');  // get public key
-jwt.verify(token, cert, { audience: 'urn:foo', issuer: 'urn:issuer' }, function(err, decoded) {
+jwt.verify(token, cert, { audience: 'urn:foo', issuer: 'urn:issuer', algorithm: "RS256" }, function(err, decoded) {
   // if issuer mismatch, err == invalid issuer
 });
 
 // verify jwt id
 var cert = fs.readFileSync('public.pem');  // get public key
-jwt.verify(token, cert, { audience: 'urn:foo', issuer: 'urn:issuer', jwtid: 'jwtid' }, function(err, decoded) {
+jwt.verify(token, cert, { audience: 'urn:foo', issuer: 'urn:issuer', jwtid: 'jwtid', algorithm: "RS256" }, function(err, decoded) {
   // if jwt id mismatch, err == invalid jwt id
 });
 
 // verify subject
 var cert = fs.readFileSync('public.pem');  // get public key
-jwt.verify(token, cert, { audience: 'urn:foo', issuer: 'urn:issuer', jwtid: 'jwtid', subject: 'subject' }, function(err, decoded) {
+jwt.verify(token, cert, { audience: 'urn:foo', issuer: 'urn:issuer', jwtid: 'jwtid', subject: 'subject', algorithm: "RS256" }, function(err, decoded) {
   // if subject mismatch, err == invalid subject
 });
 
 // alg mismatch
 var cert = fs.readFileSync('public.pem'); // get public key
-jwt.verify(token, cert, { algorithms: ['RS256'] }, function (err, payload) {
+jwt.verify(token, cert, { algorithm: 'RS256' }, function (err, payload) {
   // if token alg != RS256,  err == invalid signature
 });
 
@@ -239,7 +271,7 @@ Error object:
 * expiredAt: [ExpDate]
 
 ```js
-jwt.verify(token, 'shhhhh', function(err, decoded) {
+jwt.verify(token, 'shhhhh', { algorithm: "HS256" }, function(err, decoded) {
   if (err) {
     /*
       err = {
@@ -266,7 +298,7 @@ Error object:
   * 'jwt subject invalid. expected: [OPTIONS SUBJECT]'
 
 ```js
-jwt.verify(token, 'shhhhh', function(err, decoded) {
+jwt.verify(token, 'shhhhh', { algorithm: "HS256" }, function(err, decoded) {
   if (err) {
     /*
       err = {

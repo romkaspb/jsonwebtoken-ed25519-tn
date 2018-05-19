@@ -4,6 +4,10 @@
 All notable changes to this project will be documented in this file starting from version **v4.0.0**.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## 8.2.1 - 2018-05-18
+
+ - Forked to a new repository and created the new branch: ed25519.
+
 ## 8.2.1 - 2018-04-05
 
  - bug fix: Check payload is not null when decoded. (#444) ([1232ae9352ce5fd1ca6c593291ce6ad0834a1ff5](https://github.com/auth0/node-jsonwebtoken/commit/1232ae9352ce5fd1ca6c593291ce6ad0834a1ff5))

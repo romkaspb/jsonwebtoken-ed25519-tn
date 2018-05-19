@@ -1,4 +1,5 @@
 var jwt = require('../index');
+var ed25519Keys = require('./ed25519_keys');
 var fs = require('fs');
 var path = require('path');
 
@@ -22,6 +23,11 @@ var algorithms = {
     // openssl ec -in ecdsa-private.pem -pubout -out ecdsa-public.pem
     pub_key: loadKey('ecdsa-public.pem'),
     invalid_pub_key: loadKey('ecdsa-public-invalid.pem')
+  },
+  Ed25519: {
+    priv_key: ed25519Keys.privateKey,
+    pub_key: ed25519Keys.publicKey,
+    invalid_pub_key: ed25519Keys.invalidPublicKey
   }
 };
 
