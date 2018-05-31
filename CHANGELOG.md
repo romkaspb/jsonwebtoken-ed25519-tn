@@ -4,11 +4,6 @@
 All notable changes to this project will be documented in this file starting from version **v4.0.0**.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
-<<<<<<< HEAD
-## 8.2.1 - 2018-05-18
-
- - Forked to a new repository and created the new branch: ed25519.
-=======
 ## 8.2.2 - 2018-05-30
 
  - security: deps: jws@3.1.5 (#477) ([ebde9b7cc75cb7ab5176de7ebc4a1d6a8f05bd51](https://github.com/auth0/node-jsonwebtoken/commit/ebde9b7cc75cb7ab5176de7ebc4a1d6a8f05bd51)), closes [#465](https://github.com/auth0/node-jsonwebtoken/issues/465)
@@ -16,7 +11,9 @@ This project adheres to [Semantic Versioning](http://semver.org/).
  - ci: fix ci execution, remove not needed script (#472) ([c8ff7b2c3ffcd954a64a0273c20a7d1b22339aa5](https://github.com/auth0/node-jsonwebtoken/commit/c8ff7b2c3ffcd954a64a0273c20a7d1b22339aa5)), closes [#472](https://github.com/auth0/node-jsonwebtoken/issues/472)
  - docs: Update README.md (#461) ([f0e0954505f274da95a8d9603598e455b4d2c894](https://github.com/auth0/node-jsonwebtoken/commit/f0e0954505f274da95a8d9603598e455b4d2c894)), closes [#461](https://github.com/auth0/node-jsonwebtoken/issues/461)
 
->>>>>>> master
+## 8.2.1 - 2018-05-18
+
+ - Forked to a new repository and created the new branch: ed25519.
 
 ## 8.2.1 - 2018-04-05
 
