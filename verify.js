@@ -101,9 +101,8 @@ module.exports = function (jwtString, secretOrPublicKey, options, callback) {
     return done(new JsonWebTokenError('invalid algorithm'));
   }
 
-  var valid;
-  if(typeof secretOrPublicKey === 'function') {
-    if(!callback) {
+  if (typeof secretOrPublicKey === 'function') {
+    if (!callback) {
       return done(new JsonWebTokenError('verify must be called asynchronous if secret or public key is provided as a callback'));
     }
 
