@@ -78,7 +78,7 @@ module.exports = function (payload, secretOrPrivateKey, options, callback) {
     callback = options;
     options = {};
   } else {
-    options = xtend(options || {}); // may mutate later
+    options = options || {}; // may mutate later
   }
 
   function failure(err) {
