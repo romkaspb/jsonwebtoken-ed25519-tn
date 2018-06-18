@@ -74,7 +74,7 @@ describe('verify', function() {
     var key = 'key';
 
     var payload = { foo: 'bar', iat: 1437018582, exp: 1437018592 };
-    var options = {algorithms: ['HS256'], ignoreExpiration: true};
+    var options = {algorithm: 'HS256', ignoreExpiration: true};
 
     it('without callback', function (done) {
       jwt.verify(token, key, options, function (err, p) {
