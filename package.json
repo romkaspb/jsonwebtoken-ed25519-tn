@@ -1,10 +1,10 @@
 {
   "name": "jsonwebtoken-ed25519",
-  "version": "8.2.2-rc.2",
+  "version": "8.3.0",
   "description": "JSON Web Token implementation (symmetric and asymmetric)",
   "main": "index.js",
   "scripts": {
-    "test": "mocha --require test/util/fakeDate && nsp check && cost-of-modules"
+    "test": "nyc --reporter=html --reporter=text mocha && nsp check && cost-of-modules"
   },
   "repository": {
     "type": "git",
@@ -38,7 +38,8 @@
     "cost-of-modules": "^1.0.1",
     "mocha": "^2.1.0",
     "nsp": "^2.6.2",
-    "sinon": "^1.15.4"
+    "nyc": "^11.8.0",
+    "sinon": "^6.0.0"
   },
   "engines": {
     "npm": ">=1.4.28",
