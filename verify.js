@@ -99,6 +99,11 @@ module.exports = function (jwtString, secretOrPublicKey, options, callback) {
   }
 
   var header = decodedToken.header;
+
+  if (options.algorithm !== header.alg) {
+    return done(new JsonWebTokenError('invalid algorithm'));
+  }
+
   var getSecret;
 
   if (typeof secretOrPublicKey === 'function') {
@@ -128,10 +133,6 @@ module.exports = function (jwtString, secretOrPublicKey, options, callback) {
       return done(new JsonWebTokenError('secret or public key must be provided'));
     }
 
-    if (options.algorithm !== header.alg) {
-      return done(new JsonWebTokenError('invalid algorithm'));
-    }  
-  
     if (header.alg === 'Ed25519') {
       try {
         secretOrPublicKey = ed25519Utils.toPublicKey(secretOrPublicKey);
