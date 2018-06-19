@@ -95,11 +95,12 @@ module.exports = function (jwtString, secretOrPublicKey, options, callback) {
   }
 
   var header = decodedToken.header;
-  var getSecret;
 
   if (options.algorithm !== header.alg) {
     return done(new JsonWebTokenError('invalid algorithm'));
   }
+
+  var getSecret;
 
   if (typeof secretOrPublicKey === 'function') {
     if (!callback) {
