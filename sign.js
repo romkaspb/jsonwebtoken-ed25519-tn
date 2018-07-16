@@ -2,7 +2,6 @@ var timespan = require('./lib/timespan');
 var ed25519Utils = require('./lib/ed25519Utils');
 var util = require('util');
 var ed25519 = require('ed25519');
-var xtend = require('xtend');
 var jws = require('jws');
 var includes = require('lodash.includes');
 var isBoolean = require('lodash.isboolean');

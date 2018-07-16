@@ -5,7 +5,6 @@ var decode            = require('./decode');
 var timespan          = require('./lib/timespan');
 var ed25519Utils      = require('./lib/ed25519Utils');
 var jws               = require('jws');
-var xtend             = require('xtend');
 var ed25519           = require('ed25519');
 var util              = require('util');
 
