@@ -5,7 +5,7 @@ var decode            = require('./decode');
 var timespan          = require('./lib/timespan');
 var ed25519Utils      = require('./lib/ed25519Utils');
 var jws               = require('jws');
-var ed25519           = require('ed25519');
+var ed25519           = require('./lib/ed25519');
 var util              = require('util');
 
 module.exports = function (jwtString, secretOrPublicKey, options, callback) {
@@ -137,7 +137,7 @@ module.exports = function (jwtString, secretOrPublicKey, options, callback) {
         secretOrPublicKey = ed25519Utils.toPublicKey(secretOrPublicKey);
       } catch (err) {
         return done(new JsonWebTokenError('Invalid Ed25519 public key'));
-      }  
+      }
     }
 
     var valid;
