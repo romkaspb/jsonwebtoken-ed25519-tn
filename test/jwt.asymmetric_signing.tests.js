@@ -518,7 +518,7 @@ describe('Asymmetric Algorithms', function(){
           var token = jwt.sign(obj, priv, { algorithm: algorithm });
           var decoded = jwt.decode(token, { complete: true });
           assert.equal(decoded.payload.foo, obj.foo);
-          assert.deepEqual(decoded.header, { typ: 'JWT', alg: algorithm });
+          assert.deepEqual(decoded.header, { typ: 'JWT', alg: algorithm === 'Ed25519' ? 'EdDSA' : algorithm });
           assert.ok(typeof decoded.signature == 'string');
           done();
         });
