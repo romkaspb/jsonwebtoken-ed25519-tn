@@ -99,7 +99,8 @@ module.exports = function (jwtString, secretOrPublicKey, options, callback) {
 
   var header = decodedToken.header;
 
-  if (options.algorithm !== header.alg) {
+  if (!(options.algorithm === 'Ed25519' && header.alg === 'EdDSA' ||
+        options.algorithm === header.alg)) {
     return done(new JsonWebTokenError('invalid algorithm'));
   }
 
@@ -132,7 +133,7 @@ module.exports = function (jwtString, secretOrPublicKey, options, callback) {
       return done(new JsonWebTokenError('secret or public key must be provided'));
     }
 
-    if (header.alg === 'Ed25519') {
+    if (header.alg === 'EdDSA') {
       try {
         secretOrPublicKey = ed25519Utils.toPublicKey(secretOrPublicKey);
       } catch (err) {
@@ -143,7 +144,7 @@ module.exports = function (jwtString, secretOrPublicKey, options, callback) {
     var valid;
 
     try {
-      if (header.alg === 'Ed25519') {
+      if (header.alg === 'EdDSA') {
         // Token must have good format because jws.decode validated it.
         var securedInput = ed25519Utils.bufferFromString(util.format('%s.%s', parts[0], parts[1]));
         var signature = ed25519Utils.bufferFromString(parts[2], 'base64');

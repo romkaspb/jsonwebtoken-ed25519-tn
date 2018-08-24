@@ -87,7 +87,7 @@ function base64url(buf) {
 function fixEd25519Signature(noneToken, privateKey) {
   var splitted = noneToken.split('.', 2);
   var header = JSON.parse(ed25519Utils.bufferFromString(splitted[0], 'base64'));
-  header.alg = 'Ed25519';
+  header.alg = 'EdDSA';
   var securedInput = util.format('%s.%s', base64url(ed25519Utils.bufferFromString(JSON.stringify(header))), splitted[1]);
   var signature = base64url(ed25519.Sign(ed25519Utils.bufferFromString(securedInput), privateKey));
   return util.format('%s.%s', securedInput, signature);
