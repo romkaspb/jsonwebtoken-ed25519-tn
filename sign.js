@@ -1,7 +1,7 @@
 var timespan = require('./lib/timespan');
 var ed25519Utils = require('./lib/ed25519Utils');
 var util = require('util');
-var ed25519 = require('ed25519');
+var ed25519 = require('tweetnacl');
 var jws = require('jws');
 var includes = require('lodash.includes');
 var isBoolean = require('lodash.isboolean');
@@ -89,7 +89,7 @@ function fixEd25519Signature(noneToken, privateKey) {
   var header = JSON.parse(ed25519Utils.bufferFromString(splitted[0], 'base64'));
   header.alg = 'Ed25519';
   var securedInput = util.format('%s.%s', base64url(ed25519Utils.bufferFromString(JSON.stringify(header))), splitted[1]);
-  var signature = base64url(ed25519.Sign(ed25519Utils.bufferFromString(securedInput), privateKey));
+  var signature = base64url(Buffer.from(ed25519.sign.detached(ed25519Utils.bufferFromString(securedInput), privateKey)));
   return util.format('%s.%s', securedInput, signature);
 }
 

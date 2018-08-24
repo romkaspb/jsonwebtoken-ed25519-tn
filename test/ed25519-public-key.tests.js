@@ -12,7 +12,7 @@ function fromBase64(base64String) {
 describe('public key and private key in different formats (buffer, base64, hex)', function () {
   var privateKeyBuffer = fromBase64(ed25519Keys.privateKey);
   var publicKeyBuffer = fromBase64(ed25519Keys.publicKey);
-  
+
   var privateKeyFormats = {
     "buffer": privateKeyBuffer,
     "hex": privateKeyBuffer.toString('hex'),
@@ -29,17 +29,16 @@ describe('public key and private key in different formats (buffer, base64, hex)'
     describe(privateKeyFormat, function() {
       Object.keys(publicKeyFormats).forEach(function(publicKeyFormat) {
         describe(publicKeyFormat, function() {
-          it('should sign and verify', function (done) {    
+          it('should sign and verify', function (done) {
             var token = jwt.sign({ foo: 'bar' }, { key: privateKeyFormats[privateKeyFormat], algorithm: 'Ed25519'});
-        
             jwt.verify(token, { key: publicKeyFormats[publicKeyFormat], algorithm: 'Ed25519' }, done);
           });
         });
       });
     })
-    
+
   });
 
-  
+
 
 });
