@@ -2,6 +2,7 @@ var fs = require('fs');
 var path = require('path');
 var jwt = require('../index');
 var JsonWebTokenError = require('../lib/JsonWebTokenError');
+var ed25519Keys = require('./ed25519_keys');
 var expect = require('chai').expect;
 
 
@@ -25,6 +26,14 @@ describe('when setting a wrong `header.alg`', function () {
     it('should not verify', function () {
       expect(function () {
         jwt.verify(TOKEN, pub, {algorithm: 'RS256'});
+      }).to.throw(JsonWebTokenError, /invalid algorithm/);
+    });
+  });
+
+  describe('signing with pub key as HS256 and whitelisting only Ed25519', function () {
+    it('should not verify', function () {
+      expect(function () {
+        jwt.verify(TOKEN, ed25519Keys.publicKey, {algorithm: 'Ed25519'});
       }).to.throw(JsonWebTokenError, /invalid algorithm/);
     });
   });

@@ -1,10 +1,12 @@
 var jwt = require('../index');
+var ed25519Keys = require('./ed25519_keys');
 var fs = require('fs');
 var path = require('path');
 
 var expect = require('chai').expect;
 var assert = require('chai').assert;
 var ms = require('ms');
+var sinon = require('sinon');
 
 function loadKey(filename) {
   return fs.readFileSync(path.join(__dirname, filename));
@@ -22,6 +24,11 @@ var algorithms = {
     // openssl ec -in ecdsa-private.pem -pubout -out ecdsa-public.pem
     pub_key: loadKey('ecdsa-public.pem'),
     invalid_pub_key: loadKey('ecdsa-public-invalid.pem')
+  },
+  Ed25519: {
+    priv_key: ed25519Keys.privateKey,
+    pub_key: ed25519Keys.publicKey,
+    invalid_pub_key: ed25519Keys.invalidPublicKey
   }
 };
 
@@ -140,14 +147,14 @@ describe('Asymmetric Algorithms', function(){
 
 
         it('should valid when date are equals', function (done) {
-          Date.fix(1451908031);
+          var fakeClock = sinon.useFakeTimers({now: 1451908031});
 
           token = jwt.sign({ foo: 'bar' }, priv, { algorithm: algorithm, notBefore: 0 });
 
           jwt.verify(token, pub, { algorithm: algorithm }, function (err, decoded) {
+            fakeClock.uninstall();
             assert.isNull(err);
             assert.isNotNull(decoded);
-            Date.unfix();
             done();
           });
         });

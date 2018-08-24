@@ -1,5 +1,7 @@
 var timespan = require('./lib/timespan');
-var xtend = require('xtend');
+var ed25519Utils = require('./lib/ed25519Utils');
+var util = require('util');
+var ed25519 = require('./lib/ed25519');
 var jws = require('jws');
 var includes = require('lodash.includes');
 var isBoolean = require('lodash.isboolean');
@@ -13,7 +15,7 @@ var sign_options_schema = {
   expiresIn: { isValid: function(value) { return isInteger(value) || isString(value); }, message: '"expiresIn" should be a number of seconds or string representing a timespan' },
   notBefore: { isValid: function(value) { return isInteger(value) || isString(value); }, message: '"notBefore" should be a number of seconds or string representing a timespan' },
   audience: { isValid: function(value) { return isString(value) || Array.isArray(value); }, message: '"audience" must be a string or array' },
-  algorithm: { isValid: includes.bind(null, ['RS256', 'RS384', 'RS512', 'ES256', 'ES384', 'ES512', 'HS256', 'HS384', 'HS512', 'none']), message: '"algorithm" must be a valid string enum value' },
+  algorithm: { isValid: includes.bind(null, ['RS256', 'RS384', 'RS512', 'ES256', 'ES384', 'ES512', 'HS256', 'HS384', 'HS512', 'Ed25519', 'none']), message: '"algorithm" must be a valid string enum value' },
   header: { isValid: isPlainObject, message: '"header" must be an object' },
   encoding: { isValid: isString, message: '"encoding" must be a string' },
   issuer: { isValid: isString, message: '"issuer" must be a string' },
@@ -74,12 +76,29 @@ var options_for_objects = [
   'jwtid',
 ];
 
+function base64url(buf) {
+  return buf
+    .toString('base64')
+    .replace(/=/g, '')
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_');
+}
+
+function fixEd25519Signature(noneToken, privateKey) {
+  var splitted = noneToken.split('.', 2);
+  var header = JSON.parse(ed25519Utils.bufferFromString(splitted[0], 'base64'));
+  header.alg = 'Ed25519';
+  var securedInput = util.format('%s.%s', base64url(ed25519Utils.bufferFromString(JSON.stringify(header))), splitted[1]);
+  var signature = base64url(ed25519.Sign(ed25519Utils.bufferFromString(securedInput), privateKey));
+  return util.format('%s.%s', securedInput, signature);
+}
+
 module.exports = function (payload, secretOrPrivateKey, options, callback) {
   if (typeof options === 'function') {
     callback = options;
     options = {};
   } else {
-    options = xtend(options || {}); // may mutate later
+    options = options || {}; // may mutate later
   }
 
   function failure(err) {
@@ -104,7 +123,7 @@ module.exports = function (payload, secretOrPrivateKey, options, callback) {
   var isObjectPayload = typeof payload === 'object' &&
                         !Buffer.isBuffer(payload);
 
-  var header = xtend({
+  var header = Object.assign({
     alg: options.algorithm || 'HS256',
     typ: isObjectPayload ? 'JWT' : undefined,
     kid: options.keyid
@@ -124,7 +143,7 @@ module.exports = function (payload, secretOrPrivateKey, options, callback) {
       return failure(error);
     }
     if (!options.mutatePayload) {
-      payload = xtend(payload);
+      payload = Object.assign({},payload);
     }
   } else {
     var invalid_options = options_for_objects.filter(function (opt) {
@@ -185,19 +204,38 @@ module.exports = function (payload, secretOrPrivateKey, options, callback) {
 
   var encoding = options.encoding || 'utf8';
 
+  var isEd25519 = false;
+  if (header.alg === 'Ed25519') {
+    isEd25519 = true;
+    try {
+      secretOrPrivateKey = ed25519Utils.toPrivateKey(secretOrPrivateKey);
+    } catch (err) {
+      return failure(new Error('Invalid Ed25519 private key'));
+    }
+    header.alg = 'none';
+  }
+
   if (typeof callback === 'function') {
     callback = callback && once(callback);
 
     jws.createSign({
       header: header,
-      privateKey: secretOrPrivateKey,
+      privateKey: (isEd25519 ? '' : secretOrPrivateKey),
       payload: payload,
       encoding: encoding
     }).once('error', callback)
       .once('done', function (signature) {
+        if (isEd25519) {
+          try {
+            signature = fixEd25519Signature(signature, secretOrPrivateKey);
+          } catch (err) {
+            return callback(err);
+          }
+        }
         callback(null, signature);
       });
   } else {
-    return jws.sign({header: header, payload: payload, secret: secretOrPrivateKey, encoding: encoding});
+    var signature = jws.sign({header: header, payload: payload, secret: (isEd25519 ? '' : secretOrPrivateKey), encoding: encoding});
+    return (isEd25519 ? fixEd25519Signature(signature, secretOrPrivateKey) : signature);
   }
 };

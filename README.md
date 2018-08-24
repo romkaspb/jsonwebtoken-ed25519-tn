@@ -1,21 +1,53 @@
-# jsonwebtoken
+# jsonwebtoken-ed25519
 
-[![Build Status](https://secure.travis-ci.org/auth0/node-jsonwebtoken.svg?branch=master)](http://travis-ci.org/auth0/node-jsonwebtoken)[![Dependency Status](https://david-dm.org/auth0/node-jsonwebtoken.svg)](https://david-dm.org/auth0/node-jsonwebtoken)
+[![Build Status](https://secure.travis-ci.org/ozomer/node-jsonwebtoken.svg?branch=ed25519)](http://travis-ci.org/ozomer/node-jsonwebtoken)[![Dependency Status](https://david-dm.org/ozomer/node-jsonwebtoken.svg)](https://david-dm.org/ozomer/node-jsonwebtoken)
 
 
 An implementation of [JSON Web Tokens](https://tools.ietf.org/html/rfc7519).
 
 This was developed against `draft-ietf-oauth-json-web-token-08`. It makes use of [node-jws](https://github.com/brianloveswords/node-jws)
 
+## Fork Changes
+
+This package is a fork of [jsonwebtoken](https://www.npmjs.com/package/jsonwebtoken) with two major changes:
+
+#### `verify()` must always be called with a specific algorithm name.
+It will not trust the algorithm that is packed inside the token (anything in the token should not be trusted before verification, including the verification-algorithm). It will also not try to guess the algorithm based on the textual format of the secret/public-key. Those approaches may lead to [critical vulnerabilities](https://auth0.com/blog/critical-vulnerabilities-in-json-web-token-libraries).
+
+For simplicity, you may also specify the algorithm in together with the key in a single object. i.e.
+```js
+verify(token, { key: "shhh", algorithm: "HS512"})
+```
+is equivalent to
+```js
+verify(token, "shhh", { algorithm: "HS512"})
+```
+This allows you to store `{ key: "shhh", algorithm: "HS512"}` in a single constant, and use it easily.
+
+Specifying multiple algorithms (via `options.algorithms`) is also not allowed.
+
+Signing without an algorithm name is still allowed, and uses *HS256* like before.
+
+### Ed25519
+Support for signing and verifying *Ed25519* using the [ed25519](https://www.npmjs.com/package/ed25519) package.
+Keys may be specified as Buffers, base64 strings or hex strings (not pem files!).
+
+You may create key-pairs by installing the ed25519 package and calling:
+```js
+require('ed25519').MakeKeypair(crypto.randomBytes(32))
+```
+
+Ed25519 is not specified in the jwt draft. The token alg value (in the jwt header) will be "Ed25519".
+
 # Install
 
 ```bash
-$ npm install jsonwebtoken
+$ npm install jsonwebtoken-ed25519
 ```
 
 # Migration notes
 
-* [From v7 to v8](https://github.com/auth0/node-jsonwebtoken/wiki/Migration-Notes:-v7-to-v8)
+* [From v7 to v8](https://github.com/ozomer/node-jsonwebtoken/wiki/Migration-Notes:-v7-to-v8)
 
 # Usage
 
@@ -25,7 +57,7 @@ $ npm install jsonwebtoken
 
 (Synchronous) Returns the JsonWebToken as string
 
-`payload` could be an object literal, buffer or string representing valid JSON. *Please note that* `exp` is only set if the payload is an object literal. Buffer or string payloads are not checked for JSON validity.
+`payload` could be an object literal, buffer or string representing valid JSON. *Please note that* `exp` or any other claim is only set if the payload is an object literal. Buffer or string payloads are not checked for JSON validity.
 
 `secretOrPrivateKey` is a string, buffer, or object containing either the secret for HMAC algorithms or the PEM
 encoded private key for RSA and ECDSA. In case of a private key with passphrase an object `{ key, passphrase }` can be used (based on [crypto documentation](https://nodejs.org/api/crypto.html#crypto_sign_sign_private_key_output_format)), in this case be sure you pass the `algorithm` option.
@@ -33,8 +65,8 @@ encoded private key for RSA and ECDSA. In case of a private key with passphrase 
 `options`:
 
 * `algorithm` (default: `HS256`)
-* `expiresIn`: expressed in seconds or a string describing a time span [zeit/ms](https://github.com/zeit/ms). Eg: `60`, `"2 days"`, `"10h"`, `"7d"`
-* `notBefore`: expressed in seconds or a string describing a time span [zeit/ms](https://github.com/zeit/ms). Eg: `60`, `"2 days"`, `"10h"`, `"7d"`
+* `expiresIn`: expressed in seconds or a string describing a time span [zeit/ms](https://github.com/zeit/ms). Eg: `60`, `"2 days"`, `"10h"`, `"7d"`. A numeric value is interpreted as a seconds count. If you use a string be sure you provide the time units (days, hours, etc), otherwise milliseconds unit is used by default (`"120"` is equal to `"120ms"`).
+* `notBefore`: expressed in seconds or a string describing a time span [zeit/ms](https://github.com/zeit/ms). Eg: `60`, `"2 days"`, `"10h"`, `"7d"`. A numeric value is interpreted as a seconds count. If you use a string be sure you provide the time units (days, hours, etc), otherwise milliseconds unit is used by default (`"120"` is equal to `"120ms"`).
 * `audience`
 * `issuer`
 * `jwtid`
@@ -122,6 +154,7 @@ jwt.sign({
 
 `secretOrPublicKey` is a string or buffer containing either the secret for HMAC algorithms, or the PEM
 encoded public key for RSA and ECDSA.
+If `jwt.verify` is called asynchronous, `secretOrPublicKey` can be a function that should fetch the secret or public key. See below for a detailed example
 
 As mentioned in [this comment](https://github.com/auth0/node-jsonwebtoken/issues/208#issuecomment-231861138), there are other libraries that expect base64 encoded secrets (random bytes encoded using base64), if that is your case you can pass `Buffer.from(secret, 'base64')`, by doing this the secret will be decoded using base64 and the token verification will use the original random bytes.
 
@@ -134,67 +167,84 @@ As mentioned in [this comment](https://github.com/auth0/node-jsonwebtoken/issues
 * `ignoreNotBefore`...
 * `subject`: if you want to check subject (`sub`), provide a value here
 * `clockTolerance`: number of seconds to tolerate when checking the `nbf` and `exp` claims, to deal with small clock differences among different servers
-* `maxAge`: the maximum allowed age for tokens to still be valid. It is expressed in seconds or a string describing a time span [zeit/ms](https://github.com/zeit/ms). Eg: `1000`, `"2 days"`, `"10h"`, `"7d"`.
+* `maxAge`: the maximum allowed age for tokens to still be valid. It is expressed in seconds or a string describing a time span [zeit/ms](https://github.com/zeit/ms). Eg: `1000`, `"2 days"`, `"10h"`, `"7d"`. A numeric value is interpreted as a seconds count. If you use a string be sure you provide the time units (days, hours, etc), otherwise milliseconds unit is used by default (`"120"` is equal to `"120ms"`).
 * `clockTimestamp`: the time in seconds that should be used as the current time for all necessary comparisons.
 
 
 ```js
 // verify a token symmetric - synchronous
-var decoded = jwt.verify(token, 'shhhhh');
+var decoded = jwt.verify(token, 'shhhhh', { algorithm: "HS256" });
 console.log(decoded.foo) // bar
 
 // verify a token symmetric
-jwt.verify(token, 'shhhhh', function(err, decoded) {
+jwt.verify(token, 'shhhhh', { algorithm: "HS256" }, function(err, decoded) {
   console.log(decoded.foo) // bar
 });
 
 // invalid token - synchronous
 try {
-  var decoded = jwt.verify(token, 'wrong-secret');
+  var decoded = jwt.verify(token, 'wrong-secret', { algorithm: "HS256" });
 } catch(err) {
   // err
 }
 
 // invalid token
-jwt.verify(token, 'wrong-secret', function(err, decoded) {
+jwt.verify(token, 'wrong-secret', { algorithm: "HS256" }, function(err, decoded) {
   // err
   // decoded undefined
 });
 
 // verify a token asymmetric
 var cert = fs.readFileSync('public.pem');  // get public key
-jwt.verify(token, cert, function(err, decoded) {
+jwt.verify(token, cert, { algorithm: "RS256" }, function(err, decoded) {
   console.log(decoded.foo) // bar
 });
 
 // verify audience
 var cert = fs.readFileSync('public.pem');  // get public key
-jwt.verify(token, cert, { audience: 'urn:foo' }, function(err, decoded) {
+jwt.verify(token, cert, { audience: 'urn:foo', algorithm: "RS256" }, function(err, decoded) {
   // if audience mismatch, err == invalid audience
 });
 
 // verify issuer
 var cert = fs.readFileSync('public.pem');  // get public key
-jwt.verify(token, cert, { audience: 'urn:foo', issuer: 'urn:issuer' }, function(err, decoded) {
+jwt.verify(token, cert, { audience: 'urn:foo', issuer: 'urn:issuer', algorithm: "RS256" }, function(err, decoded) {
   // if issuer mismatch, err == invalid issuer
 });
 
 // verify jwt id
 var cert = fs.readFileSync('public.pem');  // get public key
-jwt.verify(token, cert, { audience: 'urn:foo', issuer: 'urn:issuer', jwtid: 'jwtid' }, function(err, decoded) {
+jwt.verify(token, cert, { audience: 'urn:foo', issuer: 'urn:issuer', jwtid: 'jwtid', algorithm: "RS256" }, function(err, decoded) {
   // if jwt id mismatch, err == invalid jwt id
 });
 
 // verify subject
 var cert = fs.readFileSync('public.pem');  // get public key
-jwt.verify(token, cert, { audience: 'urn:foo', issuer: 'urn:issuer', jwtid: 'jwtid', subject: 'subject' }, function(err, decoded) {
+jwt.verify(token, cert, { audience: 'urn:foo', issuer: 'urn:issuer', jwtid: 'jwtid', subject: 'subject', algorithm: "RS256" }, function(err, decoded) {
   // if subject mismatch, err == invalid subject
 });
 
 // alg mismatch
 var cert = fs.readFileSync('public.pem'); // get public key
-jwt.verify(token, cert, { algorithms: ['RS256'] }, function (err, payload) {
+jwt.verify(token, cert, { algorithm: 'RS256' }, function (err, payload) {
   // if token alg != RS256,  err == invalid signature
+});
+
+// Verify using getKey callback
+// Example uses https://github.com/auth0/node-jwks-rsa as a way to fetch the keys.
+var jwksClient = require('jwks-rsa');
+var client = jwksClient({
+  jwksUri: 'https://sandrino.auth0.com/.well-known/jwks.json'
+});
+function getKey(header, callback){
+  client.getSigningKey(header.kid, function(err, key) {
+    var signingKey = key.publicKey || key.rsaPublicKey;
+    callback(null, signingKey);
+  });
+}
+
+jwt.verify(token, getKey, options, function(err, decoded) {
+  console.log(decoded.foo) // bar
 });
 
 ```
@@ -239,7 +289,7 @@ Error object:
 * expiredAt: [ExpDate]
 
 ```js
-jwt.verify(token, 'shhhhh', function(err, decoded) {
+jwt.verify(token, 'shhhhh', { algorithm: "HS256" }, function(err, decoded) {
   if (err) {
     /*
       err = {
@@ -266,7 +316,7 @@ Error object:
   * 'jwt subject invalid. expected: [OPTIONS SUBJECT]'
 
 ```js
-jwt.verify(token, 'shhhhh', function(err, decoded) {
+jwt.verify(token, 'shhhhh', { algorithm: "HS256" }, function(err, decoded) {
   if (err) {
     /*
       err = {
