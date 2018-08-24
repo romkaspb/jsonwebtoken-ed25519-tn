@@ -19,7 +19,6 @@
     "url": "https://github.com/ozomer/node-jsonwebtoken/issues"
   },
   "dependencies": {
-    "ed25519": "0.0.4",
     "jws": "3.1.5",
     "lodash.includes": "4.3.0",
     "lodash.isboolean": "3.0.3",
