@@ -28,7 +28,8 @@
     "lodash.isplainobject": "4.0.6",
     "lodash.isstring": "4.0.1",
     "lodash.once": "4.1.1",
-    "ms": "2.1.1"
+    "ms": "2.1.1",
+    "tweetnacl": "^1.0.0"
   },
   "devDependencies": {
     "atob": "^1.1.2",
