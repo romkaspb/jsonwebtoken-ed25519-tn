@@ -1,6 +1,6 @@
 {
-  "name": "jsonwebtoken-ed25519-tn",
-  "version": "8.3.1-rc.0",
+  "name": "jwt-ed25519-tn",
+  "version": "0.0.1",
   "description": "JSON Web Token implementation (symmetric and asymmetric) with TweetNacl lib",
   "main": "index.js",
   "scripts": {
