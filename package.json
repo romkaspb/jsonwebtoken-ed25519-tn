@@ -8,7 +8,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/romkaspb/node-jsonwebtoken"
+    "url": "https://github.com/romkaspb/jsonwebtoken-ed25519-tn"
   },
   "keywords": [
     "jwt"
@@ -16,7 +16,7 @@
   "author": "romkaspb",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/romkaspb/node-jsonwebtoken/issues"
+    "url": "https://github.com/romkaspb/jsonwebtoken-ed25519-tn/issues"
   },
   "dependencies": {
     "jws": "3.1.5",
