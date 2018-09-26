@@ -1,22 +1,22 @@
 {
-  "name": "jsonwebtoken-ed25519",
+  "name": "jsonwebtoken-ed25519-tn",
   "version": "8.3.1-rc.0",
-  "description": "JSON Web Token implementation (symmetric and asymmetric)",
+  "description": "JSON Web Token implementation (symmetric and asymmetric) with TweetNacl lib",
   "main": "index.js",
   "scripts": {
     "test": "nyc --reporter=html --reporter=text mocha && nsp check && cost-of-modules"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/ozomer/node-jsonwebtoken"
+    "url": "https://github.com/romkaspb/node-jsonwebtoken"
   },
   "keywords": [
     "jwt"
   ],
-  "author": "auth0",
+  "author": "romkaspb",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/ozomer/node-jsonwebtoken/issues"
+    "url": "https://github.com/romkaspb/node-jsonwebtoken/issues"
   },
   "dependencies": {
     "jws": "3.1.5",
