@@ -39,7 +39,4 @@ describe('public key and private key in different formats (buffer, base64, hex)'
     })
     
   });
-
-  
-
 });

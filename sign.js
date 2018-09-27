@@ -2,6 +2,7 @@ var timespan = require('./lib/timespan');
 var ed25519Utils = require('./lib/ed25519Utils');
 var util = require('util');
 var ed25519 = require('./lib/ed25519');
+var base64url = require('./lib/base64url');
 var jws = require('jws');
 var includes = require('lodash.includes');
 var isBoolean = require('lodash.isboolean');
@@ -75,14 +76,6 @@ var options_for_objects = [
   'subject',
   'jwtid',
 ];
-
-function base64url(buf) {
-  return buf
-    .toString('base64')
-    .replace(/=/g, '')
-    .replace(/\+/g, '-')
-    .replace(/\//g, '_');
-}
 
 function fixEd25519Signature(noneToken, privateKey) {
   var splitted = noneToken.split('.', 2);
