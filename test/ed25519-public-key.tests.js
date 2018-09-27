@@ -1,5 +1,7 @@
 var jwt = require('../');
 var ed25519Keys = require('./ed25519_keys');
+var base64url = require('../lib/base64url');
+var expect = require('chai').expect;
 
 function fromBase64(base64String) {
   if (typeof Buffer.from === 'function') {
@@ -12,7 +14,7 @@ function fromBase64(base64String) {
 describe('public key and private key in different formats (buffer, base64, hex)', function () {
   var privateKeyBuffer = fromBase64(ed25519Keys.privateKey);
   var publicKeyBuffer = fromBase64(ed25519Keys.publicKey);
-  
+
   var privateKeyFormats = {
     "buffer": privateKeyBuffer,
     "hex": privateKeyBuffer.toString('hex'),
@@ -29,14 +31,20 @@ describe('public key and private key in different formats (buffer, base64, hex)'
     describe(privateKeyFormat, function() {
       Object.keys(publicKeyFormats).forEach(function(publicKeyFormat) {
         describe(publicKeyFormat, function() {
-          it('should sign and verify', function (done) {    
+          it('should sign and verify', function (done) {
             var token = jwt.sign({ foo: 'bar' }, { key: privateKeyFormats[privateKeyFormat], algorithm: 'Ed25519'});
-        
             jwt.verify(token, { key: publicKeyFormats[publicKeyFormat], algorithm: 'Ed25519' }, done);
           });
         });
       });
+
+      // Check that JWK is valid
+      describe('toJWK', function () {
+        it('should create a JWK with valid `x` field', function () {
+          var jwk = jwt.toJWK(privateKeyFormats[privateKeyFormat]);
+          expect(jwk.x).to.equal(base64url(publicKeyBuffer));
+        });
+      });
     })
-    
   });
 });
